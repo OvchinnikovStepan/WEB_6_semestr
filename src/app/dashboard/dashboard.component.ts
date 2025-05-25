@@ -1,30 +1,19 @@
-import { Component, OnInit } from '@angular/core';
-import { Hero } from '../hero';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { HeroService } from '../hero.service';
+import { Observable} from 'rxjs';
+import { map } from 'rxjs/operators';
+import { Hero } from '../hero';
 
 @Component({
   selector: 'app-dashboard',
   templateUrl: './dashboard.component.html',
-  styleUrls: [ './dashboard.component.css' ]
+  styleUrls: ['./dashboard.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class DashboardComponent implements OnInit {
-  heroes: Hero[] = [];
+export class DashboardComponent {
+  heroes$: Observable<Hero[]> = this.heroService.getHeroes().pipe(
+    map((heroes: Hero[]) => heroes.slice(1, 5))
+      );
 
-  constructor(private heroService: HeroService) { }
-
-  ngOnInit(): void {
-    this.getHeroes();
-  }
-
-  getHeroes(): void {
-    this.heroService.getHeroes()
-      .subscribe(heroes => this.heroes = heroes.slice(1, 5));
-  }
+  constructor(private heroService: HeroService) {}
 }
-
-
-/*
-Copyright Google LLC. All Rights Reserved.
-Use of this source code is governed by an MIT-style license that
-can be found in the LICENSE file at https://angular.io/license
-*/

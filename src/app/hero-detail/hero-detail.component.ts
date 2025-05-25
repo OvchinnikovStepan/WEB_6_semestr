@@ -1,18 +1,19 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { Location } from '@angular/common';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
-
-import { Hero } from '../hero';
+import { FormBuilder, FormGroup } from '@angular/forms';
 import { HeroService } from '../hero.service';
+import { Hero } from '../hero';
+import { Observable, switchMap } from 'rxjs';
 
 @Component({
   selector: 'app-hero-detail',
   templateUrl: './hero-detail.component.html',
   styleUrls: ['./hero-detail.component.css'],
+  changeDetection: ChangeDetectionStrategy.OnPush
 })
-export class HeroDetailComponent implements OnInit {
-  hero: Hero | undefined;
+export class HeroDetailComponent {
+  hero$: Observable<Hero>;
   heroForm: FormGroup;
 
   constructor(
@@ -22,42 +23,40 @@ export class HeroDetailComponent implements OnInit {
     private fb: FormBuilder
   ) {
     this.heroForm = this.fb.group({
-      name: ['', Validators.required],
+      name: [''],
       power: [''],
-      level: ['', [Validators.min(1), Validators.max(100)]],
-      health: ['', [Validators.min(0), Validators.max(1000)]],
-      attack: ['', [Validators.min(0), Validators.max(100)]],
-      defense: ['', [Validators.min(0), Validators.max(100)]],
+      level: [''],
+      health: [''],
+      attack: [''],
+      defense: ['']
     });
-  }
 
-  ngOnInit(): void {
-    this.getHero();
-  }
+    this.hero$ = this.route.paramMap.pipe(
+      switchMap(params => {
+        const id = Number(params.get('id'));
+        return this.heroService.getHero(id);
+      })
+    );
 
-  getHero(): void {
-    const id = Number(this.route.snapshot.paramMap.get('id'));
-    this.heroService.getHero(id).subscribe((hero) => {
-      this.hero = hero;
+    this.hero$.subscribe(hero => {
       this.heroForm.patchValue({
         name: hero.name,
         power: hero.power || '',
         level: hero.level || '',
         health: hero.health || '',
         attack: hero.attack || '',
-        defense: hero.defense || '',
+        defense: hero.defense || ''
       });
     });
   }
 
   save(): void {
-    if (this.hero && this.heroForm.valid) {
-      const updatedHero = {
-        ...this.hero,
-        ...this.heroForm.value,
-      };
-      this.heroService.updateHero(updatedHero).subscribe(() => this.goBack());
-    }
+    this.hero$.pipe(
+      switchMap(hero => {
+        const updatedHero = { ...hero, ...this.heroForm.value };
+        return this.heroService.updateHero(updatedHero);
+      })
+    ).subscribe(() => this.goBack());
   }
 
   goBack(): void {
