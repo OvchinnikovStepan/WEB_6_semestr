@@ -1,8 +1,9 @@
 import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { Hero } from '../hero';
+import { MessageService } from '../message.service';
 import { HeroService } from '../hero.service';
 import { Observable, Subject } from 'rxjs';
-import { switchMap, startWith } from 'rxjs/operators';
+import { switchMap, startWith, tap } from 'rxjs/operators';
 
 @Component({
   selector: 'app-heroes',
@@ -14,10 +15,15 @@ export class HeroesComponent {
   heroes$: Observable<Hero[]>;
   private refresh$ = new Subject<void>();
 
-  constructor(private heroService: HeroService) {
+  constructor(
+    private heroService: HeroService,
+    private messageService: MessageService
+  ) {
     this.heroes$ = this.refresh$.pipe(
       startWith(undefined),
-      switchMap(() => this.heroService.getHeroes())
+      switchMap(() => this.heroService.getHeroes().pipe(
+        tap(heroes => this.messageService.add(`HeroService: fetched ${heroes.length} heroes`))
+      ))
     );
   }
 
@@ -25,14 +31,20 @@ export class HeroesComponent {
     name = name.trim();
     if (!name) return;
     
-    this.heroService.addHero({ name } as Hero).subscribe(() => {
-      this.refresh$.next(); // Триггер обновления
-    });
+    this.heroService.addHero({ name } as Hero).pipe(
+      tap(hero => {
+        this.messageService.add(`HeroService: added hero id=${hero.id}`);
+        this.refresh$.next();
+      })
+    ).subscribe();
   }
 
   delete(hero: Hero): void {
-    this.heroService.deleteHero(hero.id).subscribe(() => {
-      this.refresh$.next(); // Триггер обновления
-    });
+    this.heroService.deleteHero(hero.id).pipe(
+      tap(() => {
+        this.messageService.add(`HeroService: deleted hero id=${hero.id}`);
+        this.refresh$.next();
+      })
+    ).subscribe();
   }
 }

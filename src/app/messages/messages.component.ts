@@ -1,5 +1,6 @@
-import { Component, ChangeDetectionStrategy  } from '@angular/core';
+import { Component, ChangeDetectionStrategy } from '@angular/core';
 import { MessageService } from '../message.service';
+import { Observable } from 'rxjs';
 
 @Component({
   selector: 'app-messages',
@@ -8,14 +9,7 @@ import { MessageService } from '../message.service';
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class MessagesComponent {
+  messages$: Observable<string[]> = this.messageService.messages$;
 
   constructor(public messageService: MessageService) {}
-
 }
-
-
-/*
-Copyright Google LLC. All Rights Reserved.
-Use of this source code is governed by an MIT-style license that
-can be found in the LICENSE file at https://angular.io/license
-*/

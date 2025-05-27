@@ -4,7 +4,8 @@ import { Location } from '@angular/common';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { HeroService } from '../hero.service';
 import { Hero } from '../hero';
-import { Observable, switchMap } from 'rxjs';
+import { Observable, switchMap, tap } from 'rxjs';
+import { MessageService } from '../message.service';
 
 @Component({
   selector: 'app-hero-detail',
@@ -20,6 +21,7 @@ export class HeroDetailComponent {
     private route: ActivatedRoute,
     private heroService: HeroService,
     private location: Location,
+    private messageService: MessageService,
     private fb: FormBuilder
   ) {
     this.heroForm = this.fb.group({
@@ -34,7 +36,9 @@ export class HeroDetailComponent {
     this.hero$ = this.route.paramMap.pipe(
       switchMap(params => {
         const id = Number(params.get('id'));
-        return this.heroService.getHero(id);
+        return this.heroService.getHero(id).pipe(
+          tap(hero => this.messageService.add(`HeroService: fetched hero id=${id}`))
+        );
       })
     );
 
@@ -53,6 +57,7 @@ export class HeroDetailComponent {
   save(): void {
     this.hero$.pipe(
       switchMap(hero => {
+        this.messageService.add(`HeroService: updated hero id=${hero.id}`);
         const updatedHero = { ...hero, ...this.heroForm.value };
         return this.heroService.updateHero(updatedHero);
       })
