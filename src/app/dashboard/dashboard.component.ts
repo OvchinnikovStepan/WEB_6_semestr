@@ -11,6 +11,9 @@ import { Hero } from '../hero';
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class DashboardComponent {
+  // Создание Observable-потока с массивом героев
+  // Используем pipe и оператор map для преобразования данных:
+  // берем исходный массив героев и получаем подмассив с 1 по 4 элемент (slice(1,5))
   heroes$: Observable<Hero[]> = this.heroService.getHeroes().pipe(
     map((heroes: Hero[]) => heroes.slice(1, 5))
       );

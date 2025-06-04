@@ -14,7 +14,9 @@ import { MessageService } from '../message.service';
   changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class HeroDetailComponent {
+  // Observable для хранения текущего героя
   hero$: Observable<Hero>;
+  // Форма для редактирования героя
   heroForm: FormGroup;
 
   constructor(
